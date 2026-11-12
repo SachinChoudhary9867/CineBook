@@ -1,0 +1,160 @@
+/* CineBook - simple styling */
+html {
+  scroll-behavior: smooth;           /* smooth scrolling when a nav link is clicked */
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eef0ff;               /* light purple-blue page background */
+  color: #333;
+}
+
+/* Navigation bar (stays at the top) */
+.navbar {
+  background: #cdd3f7;               /* slightly darker than the page */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 30px;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1b2a5c;
+}
+
+.links a {
+  color: #1b2a5c;
+  text-decoration: none;
+  margin-left: 18px;
+  font-weight: bold;
+}
+
+.links a:hover {
+  color: #5b4fd6;
+}
+
+/* Home section */
+.hero {
+  background: #d9defc;
+  text-align: center;
+  padding: 90px 20px;
+}
+
+.hero h1 {
+  color: #1b2a5c;
+  font-size: 38px;
+}
+
+.hero p {
+  max-width: 600px;
+  margin: 15px auto 25px auto;
+  font-size: 18px;
+}
+
+/* Sections */
+.section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 50px 20px;
+  scroll-margin-top: 60px;           /* keeps headings visible below the navbar */
+}
+
+h2, h3 {
+  color: #1b2a5c;
+}
+
+/* Cards (movies, forms, statistics) */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 20px;
+  width: 260px;
+}
+
+.stat {
+  width: 150px;
+  text-align: center;
+}
+
+/* Buttons */
+button, .button {
+  background: #5b4fd6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:hover, .button:hover {
+  background: #3f34a8;
+}
+
+/* Forms */
+input {
+  display: block;
+  width: 90%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #aab;
+  border-radius: 6px;
+}
+
+td input {
+  display: inline-block;
+  width: 50px;
+  margin: 0;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+th {
+  background: #1b2a5c;
+  color: white;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #dde;
+}
+
+/* Message and footer */
+.message {
+  display: none;
+  background: #fff3b0;
+  margin: 0;
+  padding: 10px 30px;
+  text-align: center;
+}
+
+.footer {
+  background: #1b2a5c;
+  color: white;
+  text-align: center;
+  padding: 15px;
+}

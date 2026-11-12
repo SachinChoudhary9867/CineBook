@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CineBook</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- Navigation bar: each link scrolls to a section (id) on this same page -->
+<div class="navbar">
+  <div class="logo">CineBook</div>
+  <div class="links">
+    <a href="#home">Home</a>
+    <a href="#movies">Movies</a>
+    <a href="#theatres">Theatres</a>
+    <a href="#bookings">My Bookings</a>
+    <a href="#about">About</a>
+    <a href="#account" id="authLink">Login / Register</a>
+  </div>
+</div>
+
+<!-- Message from the server (success / error); hidden until there is a message -->
+<p id="message" class="message"></p>
+
+<!-- 1. HOME -->
+<div id="home" class="hero">
+  <h1>Book Your Movie Tickets with CineBook</h1>
+  <p>CineBook is a simple movie ticket booking website. Pick a movie, choose a show
+     and book your tickets in a few clicks.</p>
+  <a href="#movies" class="button">Explore Movies</a>
+</div>
+
+<!-- 2. MOVIES (cards are added by the JavaScript at the bottom) -->
+<div id="movies" class="section">
+  <h2>Available Movies</h2>
+  <div id="movieList" class="cards"></div>
+</div>
+
+<!-- 3. THEATRES AND SHOWS -->
+<div id="theatres" class="section">
+  <h2>Theatres and Show Timings</h2>
+  <p>Theatre: <b>Galaxy Cinema</b>, Nanded, Maharashtra</p>
+  <p id="showHint">Click "Select Movie" on a movie card to see its shows.</p>
+  <h3 id="showTitle"></h3>
+  <table id="showTable" style="display:none">
+    <tr>
+      <th>Theatre</th>
+      <th>City</th>
+      <th>Show Time</th>
+      <th>Ticket Price</th>
+      <th>Tickets</th>
+    </tr>
+    <tbody id="showRows"></tbody>
+  </table>
+</div>
+
+<!-- 4. LOGIN AND REGISTER -->
+<div id="account" class="section">
+  <h2>Login / Register</h2>
+  <p id="userInfo"></p>
+  <div id="forms" class="cards">
+    <div class="card">
+      <h3>Register</h3>
+      <form action="/register" method="post">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Register</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Login</h3>
+      <form action="/login" method="post">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 5. MY BOOKINGS -->
+<div id="bookings" class="section">
+  <h2>My Bookings</h2>
+  <p id="bookingMsg">Please log in to see your bookings.</p>
+  <table id="bookingTable" style="display:none">
+    <tr>
+      <th>ID</th>
+      <th>Movie</th>
+      <th>Theatre</th>
+      <th>Show Time</th>
+      <th>Tickets</th>
+      <th>Total Price</th>
+      <th>Cancel</th>
+    </tr>
+    <tbody id="bookingRows"></tbody>
+  </table>
+</div>
+
+<!-- 6. BOOKING STATISTICS -->
+<div id="stats" class="section">
+  <h2>Booking Statistics</h2>
+  <div class="cards">
+    <div class="card stat"><p>Total Bookings</p><h3 id="statTotal">0</h3></div>
+    <div class="card stat"><p>Total Revenue</p><h3 id="statRevenue">0</h3></div>
+    <div class="card stat"><p>Average Booking</p><h3 id="statAverage">0</h3></div>
+    <div class="card stat"><p>Smallest Booking</p><h3 id="statSmallest">0</h3></div>
+    <div class="card stat"><p>Largest Booking</p><h3 id="statLargest">0</h3></div>
+  </div>
+  <h3>Tickets Sold per Movie</h3>
+  <table>
+    <tr>
+      <th>Movie</th>
+      <th>Tickets Sold</th>
+    </tr>
+    <tbody id="popularRows"></tbody>
+  </table>
+</div>
+
+<!-- 7. ABOUT -->
+<div id="about" class="section">
+  <h2>About CineBook</h2>
+  <p>CineBook is a college DBMS mini project. It shows how a MySQL database with tables,
+     keys, joins, views and indexes can run a simple movie ticket booking website.
+     Movie details, ratings and prices are sample data.</p>
+</div>
+
+<div class="footer">CineBook - DBMS Mini Project</div>
+
+<script>
+// Becomes true when a user is logged in
+let loggedIn = false;
+
+// Ask a Flask route for data and return it as JSON
+async function getData(url) {
+  const response = await fetch(url);
+  return await response.json();
+}
+
+// Runs when the page opens: loads everything from the database
+async function start() {
+  // Who is logged in? Is there a message to show?
+  const me = await getData("/api/me");
+  if (me.name) {
+    loggedIn = true;
+    document.getElementById("authLink").textContent = "Logout (" + me.name + ")";
+    document.getElementById("authLink").href = "/logout";
+    document.getElementById("forms").style.display = "none";
+    document.getElementById("userInfo").textContent = "You are logged in as " + me.name + ".";
+  }
+  if (me.message) {
+    document.getElementById("message").textContent = me.message;
+    document.getElementById("message").style.display = "block";
+  }
+
+  // Movie cards
+  const movies = await getData("/api/movies");
+  let html = "";
+  for (const m of movies) {
+    html += `<div class="card">
+      <h3>${m.title}</h3>
+      <p>Genre: ${m.genre}</p>
+      <p>Language: ${m.language}</p>
+      <p>Duration: ${m.duration_minutes} min</p>
+      <p>Rating: ${m.rating}</p>
+      <button onclick="selectMovie(${m.movie_id})">Select Movie</button>
+    </div>`;
+  }
+  document.getElementById("movieList").innerHTML = html;
+
+  // My bookings
+  if (loggedIn) {
+    const bookings = await getData("/api/bookings");
+    if (bookings.length == 0) {
+      document.getElementById("bookingMsg").textContent = "You have no bookings yet.";
+    } else {
+      let rows = "";
+      for (const b of bookings) {
+        rows += `<tr>
+          <td>${b.booking_id}</td><td>${b.title}</td><td>${b.theatre}</td>
+          <td>${b.show_time}</td><td>${b.tickets}</td><td>Rs. ${b.total_price}</td>
+          <td><a href="/cancel/${b.booking_id}">Cancel</a></td>
+        </tr>`;
+      }
+      document.getElementById("bookingRows").innerHTML = rows;
+      document.getElementById("bookingTable").style.display = "table";
+      document.getElementById("bookingMsg").textContent = "";
+    }
+  }
+
+  // Statistics
+  const data = await getData("/api/stats");
+  const t = data.totals;
+  document.getElementById("statTotal").textContent = t.total;
+  document.getElementById("statRevenue").textContent = "Rs. " + (t.revenue || 0);
+  document.getElementById("statAverage").textContent = "Rs. " + (t.average || 0);
+  document.getElementById("statSmallest").textContent = "Rs. " + (t.smallest || 0);
+  document.getElementById("statLargest").textContent = "Rs. " + (t.largest || 0);
+  let popularRows = "";
+  for (const p of data.popular) {
+    popularRows += `<tr><td>${p.title}</td><td>${p.tickets || 0}</td></tr>`;
+  }
+  document.getElementById("popularRows").innerHTML = popularRows;
+}
+
+// Called by the "Select Movie" button: shows the shows of that movie
+async function selectMovie(movieId) {
+  const shows = await getData("/api/shows/" + movieId);
+  let rows = "";
+  for (const s of shows) {
+    // Only logged-in users get the booking form
+    let bookCell = "Login to book";
+    if (loggedIn) {
+      bookCell = `<form action="/book" method="post">
+        <input type="hidden" name="show_id" value="${s.show_id}">
+        <input type="number" name="tickets" value="1" min="1" max="10">
+        <button type="submit">Book</button>
+      </form>`;
+    }
+    rows += `<tr><td>${s.theatre}</td><td>${s.city}</td><td>${s.show_time}</td>
+             <td>Rs. ${s.price}</td><td>${bookCell}</td></tr>`;
+  }
+  document.getElementById("showRows").innerHTML = rows;
+  document.getElementById("showTable").style.display = "table";
+  document.getElementById("showHint").style.display = "none";
+  document.getElementById("showTitle").textContent = "Shows for: " + shows[0].title;
+  document.getElementById("theatres").scrollIntoView();
+}
+
+start();
+</script>
+
+</body>
+</html>
